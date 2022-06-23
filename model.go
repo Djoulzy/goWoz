@@ -3,6 +3,8 @@ package gowoz
 import (
 	"fmt"
 	"os"
+
+	"github.com/bits-and-blooms/bitset"
 )
 
 const (
@@ -66,6 +68,7 @@ type WOZTrackDesc struct {
 type WOZTRKSChunk struct {
 	Header WOZChunkHeader
 	Tracks [160]WOZTrackDesc
+	Data   [160]*bitset.BitSet
 }
 
 type WOZFileFormat struct {

@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+
+	"github.com/bits-and-blooms/bitset"
 )
 
 ///////////////////////////////////////////
@@ -172,6 +174,10 @@ func (W *WOZTrackDesc) read(f *os.File) {
 
 func (W *WOZTRKSChunk) read(f *os.File, header WOZChunkHeader) {
 	var dataStart uint16
+	var blockBuff []byte
+	var countBit uint
+	var mask byte
+	var bitLoaded bool
 
 	W.Header = header
 
@@ -185,6 +191,29 @@ func (W *WOZTRKSChunk) read(f *os.File, header WOZChunkHeader) {
 		}
 		dataStart = W.Tracks[t].StartBlock << 9
 		f.Seek(int64(dataStart), 0)
+		blockBuff = make([]byte, W.Tracks[t].BlockCount<<9)
+		f.Read(blockBuff)
+
+		W.Data[t] = bitset.New(uint(W.Tracks[t].BitCount))
+		countBit = 0
+		bitLoaded = false
+		for _, pack := range blockBuff {
+			mask = 0b10000000
+			for i := 0; i < 8; i++ {
+				mask >>= i
+				if pack&mask == mask {
+					W.Data[t].Set(countBit)
+				}
+				countBit++
+				if uint32(countBit) == W.Tracks[t].BitCount {
+					bitLoaded = true
+					break
+				}
+			}
+			if bitLoaded {
+				break
+			}
+		}
 	}
 
 	f.Seek(int64(256+header.Size), 0)
@@ -196,6 +225,6 @@ func (W *WOZTRKSChunk) dump() {
 		if W.Tracks[t].BlockCount == 0 {
 			continue
 		}
-		fmt.Printf("Track %d : %d blocks (%d bits / %d bytes) starts at %d\n", t, W.Tracks[t].BlockCount, W.Tracks[t].BitCount, W.Tracks[t].BitCount/8, W.Tracks[t].StartBlock)
+		fmt.Printf("Track %02d : %d blocks (%d bits / %d bytes) starts at %d - len: %d\n", t, W.Tracks[t].BlockCount, W.Tracks[t].BitCount, W.Tracks[t].BitCount/8, W.Tracks[t].StartBlock, W.Data[t].Len())
 	}
 }
