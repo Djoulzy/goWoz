@@ -3,14 +3,7 @@ package gowoz
 import (
 	"os"
 
-	"github.com/bits-and-blooms/bitset"
-)
-
-const (
-	INFO_CHUNK_ID = 0x4F464E49
-	TMAP_CHUNK_ID = 0x50414D54
-	TRKS_CHUNK_ID = 0x534B5254
-	META_CHUNK_ID = 0x4154454D
+	"github.com/tunabay/go-bitarray"
 )
 
 var (
@@ -67,7 +60,7 @@ type WOZTrackDesc struct {
 type WOZTRKSChunk struct {
 	Header WOZChunkHeader
 	Tracks [160]WOZTrackDesc
-	Data   [160]*bitset.BitSet
+	Data   [160]*bitarray.Buffer
 }
 
 type WOZFileFormat struct {
@@ -77,4 +70,8 @@ type WOZFileFormat struct {
 	TMAP   WOZTMapChunk
 	META   WOZChunkMeta
 	TRKS   WOZTRKSChunk
+
+	physicalTrack float32
+	dataTrack     byte
+	bitStreamPos  int
 }

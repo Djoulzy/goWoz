@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/bits-and-blooms/bitset"
+	"github.com/tunabay/go-bitarray"
 )
 
 ///////////////////////////////////////////
@@ -147,7 +147,7 @@ func (W *WOZTMapChunk) dump() {
 	var cpt float32
 
 	fmt.Printf("== TMap\n")
-	for cpt=0; cpt<=40; cpt+= 0.25 {
+	for cpt = 0; cpt <= 40; cpt += 0.25 {
 		val, ok := W.Map[cpt]
 		if ok {
 			if val != 0xFF {
@@ -192,47 +192,58 @@ func (W *WOZTrackDesc) read(f *os.File) {
 }
 
 func (W *WOZTRKSChunk) read(f *os.File, header WOZChunkHeader) {
-	var dataStart uint16
+	var dataStart uint32
 	var blockBuff []byte
-	var countBit uint
-	var mask byte
-	var bitLoaded bool
+	// var countBit uint32
+	// var mask byte
+	// var bitLoaded bool
 
 	W.Header = header
 
+	// Read tracks infos
 	for t := 0; t < 160; t++ {
 		W.Tracks[t].read(f)
 	}
 
+	// Read tracks data
 	for t := 0; t < 160; t++ {
+		// if t > 0 {
+		// 	panic(1)
+		// }
 		if W.Tracks[t].BlockCount == 0 {
 			continue
 		}
-		dataStart = W.Tracks[t].StartBlock << 9
+		dataStart = uint32(W.Tracks[t].StartBlock) << 9
 		f.Seek(int64(dataStart), 0)
 		blockBuff = make([]byte, W.Tracks[t].BlockCount<<9)
 		f.Read(blockBuff)
 
-		W.Data[t] = bitset.New(uint(W.Tracks[t].BitCount))
-		countBit = 0
-		bitLoaded = false
-		for _, pack := range blockBuff {
-			mask = 0b10000000
-			for i := 0; i < 8; i++ {
-				mask >>= i
-				if pack&mask == mask {
-					W.Data[t].Set(countBit)
-				}
-				countBit++
-				if uint32(countBit) == W.Tracks[t].BitCount {
-					bitLoaded = true
-					break
-				}
-			}
-			if bitLoaded {
-				break
-			}
-		}
+		W.Data[t] = bitarray.NewBufferFromByteSlice(blockBuff)
+		// fmt.Printf("blocks: %d - Bits: %d\n", W.Tracks[t].BlockCount, W.Tracks[t].BitCount)
+		// countBit = 0
+		// bitLoaded = false
+		// for _, pack := range blockBuff {
+		// 	// fmt.Printf("%08b", pack)
+		// 	for i := 0; i < 8; i++ {
+		// 		mask = 0b10000000 >> i
+		// 		if pack&mask == mask {
+		// 			W.Data[t].
+		// 		}
+		// 		// if pack&mask == mask {
+		// 		// 	fmt.Printf("1")
+		// 		// } else {
+		// 		// 	fmt.Printf("0")
+		// 		// }
+		// 		countBit++
+		// 		if countBit == W.Tracks[t].BitCount {
+		// 			bitLoaded = true
+		// 			break
+		// 		}
+		// 	}
+		// 	if bitLoaded {
+		// 		break
+		// 	}
+		// }
 	}
 
 	f.Seek(int64(256+header.Size), 0)
@@ -244,6 +255,6 @@ func (W *WOZTRKSChunk) dump() {
 		if W.Tracks[t].BlockCount == 0 {
 			continue
 		}
-		fmt.Printf("Track %02d : %d blocks (%d bits / %d bytes) starts at %d - len: %d\n", t, W.Tracks[t].BlockCount, W.Tracks[t].BitCount, W.Tracks[t].BitCount/8, W.Tracks[t].StartBlock, W.Data[t].Len())
+		fmt.Printf("Track %02d : %d blocks (%d bits / %d bytes) starts at block %d (byte %d)- len: %d\n", t, W.Tracks[t].BlockCount, W.Tracks[t].BitCount, W.Tracks[t].BitCount/8, W.Tracks[t].StartBlock, uint32(W.Tracks[t].StartBlock)<<9, W.Data[t].Len())
 	}
 }
