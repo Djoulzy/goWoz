@@ -15,7 +15,10 @@ import (
 
 func (W *WOZHeader) read(f *os.File) {
 	var tmp [1]byte
-	f.Read(W.Format[:])
+	var tmp4 [4]byte
+
+	f.Read(tmp4[:])
+	W.Format = fmt.Sprintf("%s", tmp4)
 	f.Read(tmp[:])
 	W.HighBits = tmp[0]
 	f.Read(W.LFCRLF[:])
@@ -179,82 +182,91 @@ func (W *WOZChunkMeta) dump() {
 //                  TRKS                 //
 ///////////////////////////////////////////
 
-func (W *WOZTrackDesc) read(f *os.File) {
+func (W *WOZTrackDesc) read(version int, f *os.File) {
+	var tmp [1]byte
 	var tmp2 [2]byte
 	var tmp4 [4]byte
 
-	f.Read(tmp2[:])
-	W.StartBlock = binary.LittleEndian.Uint16(tmp2[:])
-	f.Read(tmp2[:])
-	W.BlockCount = binary.LittleEndian.Uint16(tmp2[:])
-	f.Read(tmp4[:])
-	W.BitCount = binary.LittleEndian.Uint32(tmp4[:])
+	W.Version = version
+
+	if version >= 2 {
+		f.Read(tmp2[:])
+		W.StartBlock = binary.LittleEndian.Uint16(tmp2[:])
+		f.Read(tmp2[:])
+		W.BlockCount = binary.LittleEndian.Uint16(tmp2[:])
+		f.Read(tmp4[:])
+		W.BitCount = binary.LittleEndian.Uint32(tmp4[:])
+	} else {
+		f.Read(tmp2[:])
+		W.BytesUsed = binary.LittleEndian.Uint16(tmp2[:])
+		f.Read(tmp2[:])
+		W.BitCount = uint32(binary.LittleEndian.Uint16(tmp2[:]))
+		f.Read(tmp4[:])
+		W.SplicePoint = binary.LittleEndian.Uint16(tmp2[:])
+		f.Read(tmp[:])
+		W.SpliceNibble = tmp[0]
+		f.Read(tmp[:])
+		W.SpliceBitCount = tmp[0]
+		f.Read(tmp2[:])
+		W.Reserved = binary.LittleEndian.Uint16(tmp2[:])
+	}
 }
 
-func (W *WOZTRKSChunk) read(f *os.File, header WOZChunkHeader) {
+func (W *WOZTRKSChunk) read(version int, f *os.File, header WOZChunkHeader) {
 	var dataStart uint32
 	var blockBuff []byte
-	// var countBit uint32
-	// var mask byte
-	// var bitLoaded bool
 
 	W.Header = header
+	W.Version = version
 
-	// Read tracks infos
-	for t := 0; t < 160; t++ {
-		W.Tracks[t].read(f)
-	}
-
-	// Read tracks data
-	for t := 0; t < 160; t++ {
-		// if t > 0 {
-		// 	panic(1)
-		// }
-		if W.Tracks[t].BlockCount == 0 {
-			continue
+	if version >= 2 {
+		// Read tracks infos v2
+		for t := 0; t < 160; t++ {
+			W.Tracks[t].read(version, f)
 		}
-		dataStart = uint32(W.Tracks[t].StartBlock) << 9
-		f.Seek(int64(dataStart), 0)
-		blockBuff = make([]byte, W.Tracks[t].BlockCount<<9)
-		f.Read(blockBuff)
 
-		W.Data[t] = bitarray.NewBufferFromByteSlice(blockBuff)
-		// fmt.Printf("blocks: %d - Bits: %d\n", W.Tracks[t].BlockCount, W.Tracks[t].BitCount)
-		// countBit = 0
-		// bitLoaded = false
-		// for _, pack := range blockBuff {
-		// 	// fmt.Printf("%08b", pack)
-		// 	for i := 0; i < 8; i++ {
-		// 		mask = 0b10000000 >> i
-		// 		if pack&mask == mask {
-		// 			W.Data[t].
-		// 		}
-		// 		// if pack&mask == mask {
-		// 		// 	fmt.Printf("1")
-		// 		// } else {
-		// 		// 	fmt.Printf("0")
-		// 		// }
-		// 		countBit++
-		// 		if countBit == W.Tracks[t].BitCount {
-		// 			bitLoaded = true
-		// 			break
-		// 		}
-		// 	}
-		// 	if bitLoaded {
-		// 		break
-		// 	}
-		// }
+		// Read tracks data
+		for t := 0; t < 160; t++ {
+			if W.Tracks[t].BlockCount == 0 {
+				continue
+			}
+			dataStart = uint32(W.Tracks[t].StartBlock) << 9
+			f.Seek(int64(dataStart), 0)
+			blockBuff = make([]byte, W.Tracks[t].BlockCount<<9)
+			f.Read(blockBuff)
+
+			W.Data[t] = bitarray.NewBufferFromByteSlice(blockBuff)
+		}
+	} else {
+		// Read tracks data
+		for t := 0; t < 140; t++ {
+			dataStart = 256 + (uint32(t) * 6656)
+			f.Seek(int64(dataStart), 0)
+			blockBuff = make([]byte, 6646)
+			f.Read(blockBuff)
+
+			W.Data[t] = bitarray.NewBufferFromByteSlice(blockBuff)
+			W.Tracks[t].read(version, f)
+		}
 	}
-
 	f.Seek(int64(256+header.Size), 0)
 }
 
 func (W *WOZTRKSChunk) dump() {
 	fmt.Printf("== TRKS\n")
-	for t := 0; t < 160; t++ {
-		if W.Tracks[t].BlockCount == 0 {
-			continue
+	if W.Version >= 2 {
+		for t := 0; t < 160; t++ {
+			if W.Tracks[t].BlockCount == 0 {
+				continue
+			}
+			fmt.Printf("Track %02d : %d blocks (%d bits / %d bytes) starts at block %d (byte %d) - len: %d\n", t, W.Tracks[t].BlockCount, W.Tracks[t].BitCount, W.Tracks[t].BitCount/8, W.Tracks[t].StartBlock, uint32(W.Tracks[t].StartBlock)<<9, W.Data[t].Len())
 		}
-		fmt.Printf("Track %02d : %d blocks (%d bits / %d bytes) starts at block %d (byte %d)- len: %d\n", t, W.Tracks[t].BlockCount, W.Tracks[t].BitCount, W.Tracks[t].BitCount/8, W.Tracks[t].StartBlock, uint32(W.Tracks[t].StartBlock)<<9, W.Data[t].Len())
+	} else {
+		for t := 0; t < 140; t++ {
+			if W.Tracks[t].BitCount == 0 {
+				continue
+			}
+			fmt.Printf("Track %02d : %d bits / %d bytes (used: %d) - len: %d\n", t, W.Tracks[t].BitCount, W.Tracks[t].BitCount/8, W.Tracks[t].BytesUsed, W.Data[t].Len())
+		}
 	}
 }

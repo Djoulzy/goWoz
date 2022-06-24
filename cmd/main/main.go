@@ -7,19 +7,25 @@ import (
 )
 
 func main() {
-	disk, err := gowoz.InitWozFile("Choplifter.woz")
+	disk, err := gowoz.InitWozFile("anti-m.woz")
 	if err != nil {
 		panic(err)
 	}
 	disk.Dump(true)
 	// disk.DumpTrack(0)
 
-	disk.GoToTrack(34)
-	for x := 0; x < 10; x++ {
-		fmt.Printf("%d\n", disk.GetNextByte())
+	disk.GoToTrack(1)
+	for x := 0; x < 25000; x++ {
+		disk.GetNextByte()
 	}
 
-	disk.GoToTrack(0)
+	disk.Seek(0.5)
+	disk.Seek(0.5)
+	disk.Seek(0.5)
+	disk.Seek(0.5)
+	disk.Seek(0.5)
+	disk.Seek(0.5)
+
 	for x := 0; x < 10; x++ {
 		fmt.Printf("%d\n", disk.GetNextByte())
 	}

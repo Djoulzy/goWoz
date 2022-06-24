@@ -12,7 +12,7 @@ var (
 )
 
 type WOZHeader struct {
-	Format   [4]byte
+	Format   string
 	HighBits byte
 	LFCRLF   [3]byte
 	CRC      [4]byte
@@ -52,15 +52,23 @@ type WOZTMapChunk struct {
 }
 
 type WOZTrackDesc struct {
+	Version    int
 	StartBlock uint16
 	BlockCount uint16
 	BitCount   uint32
+
+	BytesUsed      uint16
+	SplicePoint    uint16
+	SpliceNibble   uint8
+	SpliceBitCount uint8
+	Reserved       uint16
 }
 
 type WOZTRKSChunk struct {
-	Header WOZChunkHeader
-	Tracks [160]WOZTrackDesc
-	Data   [160]*bitarray.Buffer
+	Header  WOZChunkHeader
+	Version int
+	Tracks  [160]WOZTrackDesc
+	Data    [160]*bitarray.Buffer
 }
 
 type WOZFileFormat struct {
@@ -71,7 +79,8 @@ type WOZFileFormat struct {
 	META   WOZChunkMeta
 	TRKS   WOZTRKSChunk
 
+	Version       int
 	physicalTrack float32
 	dataTrack     byte
-	bitStreamPos  int
+	bitStreamPos  uint32
 }
