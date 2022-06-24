@@ -1,7 +1,6 @@
 package gowoz
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/bits-and-blooms/bitset"
@@ -56,7 +55,7 @@ type WOZInfoChunk struct {
 
 type WOZTMapChunk struct {
 	Header WOZChunkHeader
-	Map    [160]byte
+	Map    map[float32]byte
 }
 
 type WOZTrackDesc struct {
@@ -78,53 +77,4 @@ type WOZFileFormat struct {
 	TMAP   WOZTMapChunk
 	META   WOZChunkMeta
 	TRKS   WOZTRKSChunk
-}
-
-func (W *WOZFileFormat) init(f *os.File) {
-	var chunkHeader WOZChunkHeader
-	var n int
-	var err error
-
-	W.fdesc = f
-
-	W.Header.read(f)
-
-	for {
-		n, err = chunkHeader.read(f)
-		if err != nil {
-			fmt.Printf("Lecture header: %d\n", n)
-			panic(err)
-		}
-		if n == 0 {
-			fmt.Printf("End of file\n")
-			break
-		}
-
-		switch chunkHeader.ID {
-		case "INFO":
-			fmt.Printf("%s Found with size: %d\n", chunkHeader.ID, chunkHeader.Size)
-			W.INFO.read(f, chunkHeader)
-		case "TMAP":
-			fmt.Printf("%s Found with size: %d\n", chunkHeader.ID, chunkHeader.Size)
-			W.TMAP.read(f, chunkHeader)
-		case "TRKS":
-			fmt.Printf("%s Found with size: %d\n", chunkHeader.ID, chunkHeader.Size)
-			W.TRKS.read(f, chunkHeader)
-		case "META":
-			fmt.Printf("%s Found with size: %d\n", chunkHeader.ID, chunkHeader.Size)
-			W.META.read(f, chunkHeader)
-		default:
-			fmt.Printf("%s Found with size: %d\n", chunkHeader.ID, chunkHeader.Size)
-			f.Seek(int64(chunkHeader.Size), 1)
-		}
-	}
-	fmt.Printf("File OK\n\n")
-}
-
-func (W *WOZFileFormat) Dump() {
-	W.Header.dump()
-	W.INFO.dump()
-	W.META.dump()
-	W.TMAP.dump()
-	W.TRKS.dump()
 }
