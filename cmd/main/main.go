@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/Djoulzy/gowoz"
 )
 
@@ -14,24 +12,24 @@ func main() {
 	disk.Dump(true)
 	// disk.DumpTrack(0)
 
-	disk.GoToTrack(1)
-	for x := 0; x < 25000; x++ {
-		disk.GetNextByte()
-	}
+	// disk.GoToTrack(1)
+	// for x := 0; x < 25000; x++ {
+	// 	disk.GetNextByte()
+	// }
 
-	disk.Seek(0.5)
-	disk.Seek(0.5)
-	disk.Seek(0.5)
-	disk.Seek(0.5)
-	disk.Seek(0.5)
-	disk.Seek(0.5)
+	// disk.Seek(0.5)
+	// disk.Seek(0.5)
+	// disk.Seek(0.5)
+	// disk.Seek(0.5)
+	// disk.Seek(0.5)
+	// disk.Seek(0.5)
 
-	for x := 0; x < 10; x++ {
-		fmt.Printf("%d\n", disk.GetNextByte())
-	}
+	// for x := 0; x < 10; x++ {
+	// 	fmt.Printf("%d\n", disk.GetNextByte())
+	// }
 
-	disk.GoToTrack(16)
-	for x := 0; x < 10; x++ {
-		fmt.Printf("%d\n", disk.GetNextByte())
-	}
+	// disk.GoToTrack(16)
+	// for x := 0; x < 10; x++ {
+	// 	fmt.Printf("%d\n", disk.GetNextByte())
+	// }
 }

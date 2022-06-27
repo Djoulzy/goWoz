@@ -86,7 +86,7 @@ func (W *WOZFileFormat) DumpTrack(num byte) {
 
 func (W *WOZFileFormat) getNextBit() byte {
 	// Lecture d'un track vide
-	fmt.Printf("DataTrack: %d\n", W.dataTrack)
+	// fmt.Printf("DataTrack: %v\n", W.dataTrack)
 	if W.dataTrack == 0xFF {
 		W.bitStreamPos++
 		if W.bitStreamPos > 51200 {
@@ -100,14 +100,17 @@ func (W *WOZFileFormat) getNextBit() byte {
 	W.bitStreamPos++
 	if W.bitStreamPos > W.TRKS.Tracks[W.dataTrack].BitCount {
 		W.bitStreamPos = 0
+		fmt.Printf("RESET\n")
 	}
-	// fmt.Printf("%d", res)
+	// fmt.Printf("%d / \n", W.bitStreamPos)
 	return res
 }
 
 func (W *WOZFileFormat) GetNextByte() byte {
 	var result byte
-
+	if W.TRKS.Tracks[W.dataTrack].BitCount == 0 {
+		return 0
+	}
 	for W.getNextBit() == 0 {
 	}
 	result = 0x80 // the bit we just retrieved is the high bit
