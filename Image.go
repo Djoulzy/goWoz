@@ -2,9 +2,11 @@ package gowoz
 
 import (
 	"fmt"
-	"math/rand"
 	"os"
 )
+
+var count int = 0
+var wheel []byte = []byte{'-', '\\', '|', '/'}
 
 func InitWozFile(fileName string) (*WOZFileFormat, error) {
 	file, err := os.Open(fileName)
@@ -44,7 +46,6 @@ func (W *WOZFileFormat) init(f *os.File) {
 			panic(err)
 		}
 		if n == 0 {
-			fmt.Printf("End of file\n")
 			break
 		}
 
@@ -72,8 +73,7 @@ func (W *WOZFileFormat) Dump(full bool) {
 	W.INFO.dump()
 	W.META.dump()
 	if full {
-		W.TMAP.dump()
-		W.TRKS.dump()
+		W.TRKS.dump(W.TMAP.Map)
 	}
 }
 
@@ -88,11 +88,12 @@ func (W *WOZFileFormat) getNextBit() byte {
 	// Lecture d'un track vide
 	// fmt.Printf("DataTrack: %v\n", W.dataTrack)
 	if W.dataTrack == 0xFF {
-		W.bitStreamPos++
-		if W.bitStreamPos > 51200 {
-			W.bitStreamPos = 0
-		}
-		return byte(rand.Intn(2))
+		// W.bitStreamPos++
+		// if W.bitStreamPos > 51200 {
+		// 	W.bitStreamPos = 0
+		// }
+		// return byte(rand.Intn(2))
+		return 0
 	}
 
 	trkData := W.TRKS.Data[W.dataTrack]
@@ -107,13 +108,22 @@ func (W *WOZFileFormat) getNextBit() byte {
 
 func (W *WOZFileFormat) GetNextByte() byte {
 	var result byte
+	if W.TRKS.Tracks[W.dataTrack].BitCount == 0 {
+		return 0
+	}
+	result = 0
 	for W.getNextBit() == 0 {
 	}
 	result = 0x80 // the bit we just retrieved is the high bit
 	for i := 6; i >= 0; i-- {
 		result |= W.getNextBit() << i
 	}
-	// fmt.Printf("T:%d Pos:%d -> %02X\n", W.dataTrack, W.bitStreamPos, result)
+
+	fmt.Printf("%c T:%02.02f (%d) Pos:%d\r", wheel[count], W.physicalTrack, W.dataTrack, W.bitStreamPos)
+	count++
+	if count >= len(wheel) {
+		count = 0
+	}
 	return result
 }
 
@@ -126,34 +136,32 @@ func (W *WOZFileFormat) GoToTrack(num float32) {
 		// fmt.Printf("Empty track %02.02f - actual pos: %d\n", num, W.bitStreamPos)
 		W.bitStreamPos = W.bitStreamPos * (51200 / W.TRKS.Tracks[W.dataTrack].BitCount)
 		W.physicalTrack = num
-		W.dataTrack = 0xFF
+		// W.dataTrack = 0xFF
 		// fmt.Printf("new pos: %d\n", W.bitStreamPos)
 	} else if newDataTrack == W.dataTrack {
 		W.physicalTrack = num
 		return
 	} else {
-		if W.dataTrack != 0xFF {
-			W.bitStreamPos = W.bitStreamPos * (W.TRKS.Tracks[newDataTrack].BitCount / W.TRKS.Tracks[W.dataTrack].BitCount)
-		}
+		W.bitStreamPos = W.bitStreamPos * (W.TRKS.Tracks[newDataTrack].BitCount / W.TRKS.Tracks[W.dataTrack].BitCount)
 		W.physicalTrack = num
 		W.dataTrack = newDataTrack
-		// fmt.Printf("Find Track %d - Pos: %d\n", W.dataTrack, W.bitStreamPos)
 	}
 	if W.bitStreamPos > 3 {
 		W.bitStreamPos -= 4
 	}
+	fmt.Printf("\nMove to T:%02.02f (%d) at pos %d\n", W.physicalTrack, W.dataTrack, W.bitStreamPos)
 }
 
 func (W *WOZFileFormat) Seek(offset float32) {
 	var maxTrack float32
 	destTrack := W.physicalTrack + offset
-	fmt.Printf("Seek track %02.2f\n", destTrack)
 
 	if W.Version >= 2 {
 		maxTrack = 40
 	} else {
 		maxTrack = 35
 	}
+
 	if destTrack < 0 {
 		destTrack = 0
 	} else if destTrack > maxTrack {

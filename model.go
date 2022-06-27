@@ -25,7 +25,7 @@ type WOZChunkHeader struct {
 
 type WOZChunkMeta struct {
 	Header   WOZChunkHeader
-	Metadata string
+	Metadata map[string]string
 }
 
 type WOZInfoChunk struct {

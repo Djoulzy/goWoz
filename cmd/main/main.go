@@ -5,12 +5,12 @@ import (
 )
 
 func main() {
-	disk, err := gowoz.InitWozFile("anti-m.woz")
+	disk, err := gowoz.InitWozFile("Choplifter.woz")
 	if err != nil {
 		panic(err)
 	}
-	disk.Dump(true)
-	disk.DumpTrack(2)
+	disk.Dump(false)
+	// disk.DumpTrack(2)
 
 	// disk.GoToTrack(1)
 	// for x := 0; x < 25000; x++ {
