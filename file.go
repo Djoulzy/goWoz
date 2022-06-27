@@ -54,7 +54,7 @@ func (W *WOZFileFormat) init(f *os.File) {
 		case "TMAP":
 			W.TMAP.read(f, chunkHeader)
 		case "TRKS":
-			W.TRKS.read(W.Version, f, chunkHeader)
+			W.TRKS.read(W.TMAP.Map, W.Version, f, chunkHeader)
 		case "META":
 			W.META.read(f, chunkHeader)
 		default:
@@ -100,7 +100,6 @@ func (W *WOZFileFormat) getNextBit() byte {
 	W.bitStreamPos++
 	if W.bitStreamPos > W.TRKS.Tracks[W.dataTrack].BitCount {
 		W.bitStreamPos = 0
-		fmt.Printf("RESET\n")
 	}
 	// fmt.Printf("%d / \n", W.bitStreamPos)
 	return res
@@ -108,24 +107,27 @@ func (W *WOZFileFormat) getNextBit() byte {
 
 func (W *WOZFileFormat) GetNextByte() byte {
 	var result byte
-	if W.TRKS.Tracks[W.dataTrack].BitCount == 0 {
-		return 0
-	}
 	for W.getNextBit() == 0 {
 	}
 	result = 0x80 // the bit we just retrieved is the high bit
 	for i := 6; i >= 0; i-- {
 		result |= W.getNextBit() << i
 	}
+	// fmt.Printf("T:%d Pos:%d -> %02X\n", W.dataTrack, W.bitStreamPos, result)
 	return result
 }
 
 func (W *WOZFileFormat) GoToTrack(num float32) {
 	newDataTrack, ok := W.TMAP.Map[num]
-	if newDataTrack == 0xFF || !ok {
+	if !ok {
+		panic("bad track")
+	}
+	if newDataTrack == 0xFF {
+		// fmt.Printf("Empty track %02.02f - actual pos: %d\n", num, W.bitStreamPos)
 		W.bitStreamPos = W.bitStreamPos * (51200 / W.TRKS.Tracks[W.dataTrack].BitCount)
 		W.physicalTrack = num
 		W.dataTrack = 0xFF
+		// fmt.Printf("new pos: %d\n", W.bitStreamPos)
 	} else if newDataTrack == W.dataTrack {
 		W.physicalTrack = num
 		return
@@ -135,7 +137,7 @@ func (W *WOZFileFormat) GoToTrack(num float32) {
 		}
 		W.physicalTrack = num
 		W.dataTrack = newDataTrack
-		fmt.Printf("Find Track %d - Pos: %d\n", W.dataTrack, W.bitStreamPos)
+		// fmt.Printf("Find Track %d - Pos: %d\n", W.dataTrack, W.bitStreamPos)
 	}
 	if W.bitStreamPos > 3 {
 		W.bitStreamPos -= 4
@@ -143,12 +145,19 @@ func (W *WOZFileFormat) GoToTrack(num float32) {
 }
 
 func (W *WOZFileFormat) Seek(offset float32) {
+	var maxTrack float32
 	destTrack := W.physicalTrack + offset
 	fmt.Printf("Seek track %02.2f\n", destTrack)
+
+	if W.Version >= 2 {
+		maxTrack = 40
+	} else {
+		maxTrack = 35
+	}
 	if destTrack < 0 {
 		destTrack = 0
-	} else if destTrack > 40 {
-		destTrack = 40
+	} else if destTrack > maxTrack {
+		destTrack = maxTrack
 	} else {
 		W.GoToTrack(destTrack)
 	}

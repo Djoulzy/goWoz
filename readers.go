@@ -153,9 +153,9 @@ func (W *WOZTMapChunk) dump() {
 	for cpt = 0; cpt <= 40; cpt += 0.25 {
 		val, ok := W.Map[cpt]
 		if ok {
-			if val != 0xFF {
-				fmt.Printf("Physical Track %0.2f: %d\n", cpt, val)
-			}
+			// if val != 0xFF {
+			fmt.Printf("Physical Track %0.2f: %d\n", cpt, val)
+			// }
 		}
 	}
 }
@@ -212,7 +212,7 @@ func (W *WOZTrackDesc) read(version int, f *os.File) {
 	}
 }
 
-func (W *WOZTRKSChunk) read(version int, f *os.File, header WOZChunkHeader) {
+func (W *WOZTRKSChunk) read(MAP map[float32]byte, version int, f *os.File, header WOZChunkHeader) {
 	var dataStart uint32
 	var blockBuff []byte
 
@@ -239,15 +239,28 @@ func (W *WOZTRKSChunk) read(version int, f *os.File, header WOZChunkHeader) {
 		}
 	} else {
 		// Read tracks data
-		for t := 0; t < 140; t++ {
-			dataStart = 256 + (uint32(t) * 6656)
-			f.Seek(int64(dataStart), 0)
-			blockBuff = make([]byte, 6646)
-			f.Read(blockBuff)
+		for _, track := range MAP {
+			if track == 0xFF {
+				continue
+			} else {
+				dataStart = 256 + (uint32(track) * 6656)
+				f.Seek(int64(dataStart), 0)
+				blockBuff = make([]byte, 6646)
+				f.Read(blockBuff)
 
-			W.Data[t] = bitarray.NewBufferFromByteSlice(blockBuff)
-			W.Tracks[t].read(version, f)
+				W.Data[track] = bitarray.NewBufferFromByteSlice(blockBuff)
+				W.Tracks[track].read(version, f)
+			}
 		}
+		// for t := 0; t < 140; t++ {
+		// 	dataStart = 256 + (uint32(t) * 6656)
+		// 	f.Seek(int64(dataStart), 0)
+		// 	blockBuff = make([]byte, 6646)
+		// 	f.Read(blockBuff)
+
+		// 	W.Data[t] = bitarray.NewBufferFromByteSlice(blockBuff)
+		// 	W.Tracks[t].read(version, f)
+		// }
 	}
 	f.Seek(int64(256+header.Size), 0)
 }

@@ -10,7 +10,7 @@ func main() {
 		panic(err)
 	}
 	disk.Dump(true)
-	// disk.DumpTrack(0)
+	disk.DumpTrack(2)
 
 	// disk.GoToTrack(1)
 	// for x := 0; x < 25000; x++ {
