@@ -55,17 +55,29 @@ func (W *WOZTRKSChunk) read(MAP map[float32]byte, version int, f *os.File, heade
 			W.Tracks[t].read(version, f)
 		}
 		// Read tracks data
-		for _, track := range MAP {
-			if track == 0xFF {
-				continue
-			} else {
-				dataStart = uint32(W.Tracks[track].StartBlock) << 9
-				f.Seek(int64(dataStart), 0)
-				blockBuff = make([]byte, W.Tracks[track].BlockCount<<9)
-				f.Read(blockBuff)
+		// for _, track := range MAP {
+		// 	if track == 0xFF {
+		// 		continue
+		// 	} else {
+		// 		dataStart = uint32(W.Tracks[track].StartBlock) << 9
+		// 		f.Seek(int64(dataStart), 0)
+		// 		blockBuff = make([]byte, W.Tracks[track].BlockCount<<9)
+		// 		f.Read(blockBuff)
 
-				W.Data[track] = bitarray.NewBufferFromByteSlice(blockBuff)
+		// 		W.Data[track] = bitarray.NewBufferFromByteSlice(blockBuff)
+		// 	}
+		// }
+
+		for t := 0; t < 160; t++ {
+			if W.Tracks[t].BlockCount == 0 {
+				continue
 			}
+			dataStart = uint32(W.Tracks[t].StartBlock) << 9
+			f.Seek(int64(dataStart), 0)
+			blockBuff = make([]byte, W.Tracks[t].BlockCount<<9)
+			f.Read(blockBuff)
+
+			W.Data[t] = bitarray.NewBufferFromByteSlice(blockBuff)
 		}
 
 	} else {
@@ -95,6 +107,7 @@ func (W *WOZTRKSChunk) dump(MAP map[float32]byte) {
 		val, ok := MAP[cpt]
 		if ok {
 			if val == 0xFF {
+				// fmt.Printf("Physical Track %0.2f = %02X\n", cpt, MAP[cpt])
 				continue
 			}
 			if W.Version >= 2 {
