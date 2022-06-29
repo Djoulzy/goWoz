@@ -5,11 +5,13 @@ import (
 )
 
 func main() {
-	disk, err := gowoz.InitWozFile("Choplifter.woz")
+	disk, err := gowoz.InitWozFile("Conan_A.woz")
 	if err != nil {
 		panic(err)
 	}
-	disk.Dump(false)
+	disk.Dump(true)
+	disk.ReadTrack(0, 6675)
+	// disk.ReadTrackRaw(0, 53404)
 	// disk.DumpTrack(2)
 
 	// disk.GoToTrack(1)

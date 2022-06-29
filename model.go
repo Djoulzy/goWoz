@@ -2,8 +2,6 @@ package gowoz
 
 import (
 	"os"
-
-	"github.com/tunabay/go-bitarray"
 )
 
 var (
@@ -68,7 +66,7 @@ type WOZTRKSChunk struct {
 	Header  WOZChunkHeader
 	Version int
 	Tracks  [160]WOZTrackDesc
-	Data    [160]*bitarray.Buffer
+	Data    [160][]byte
 }
 
 type WOZFileFormat struct {
@@ -83,4 +81,5 @@ type WOZFileFormat struct {
 	physicalTrack float32
 	dataTrack     byte
 	bitStreamPos  uint32
+	revolution    int
 }

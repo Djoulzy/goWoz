@@ -63,6 +63,7 @@ func (W *WOZFileFormat) init(f *os.File) {
 	W.physicalTrack = 0
 	W.dataTrack = 0
 	W.bitStreamPos = 0
+	W.revolution = 0
 }
 
 func (W *WOZFileFormat) Dump(full bool) {
@@ -71,12 +72,5 @@ func (W *WOZFileFormat) Dump(full bool) {
 	W.META.dump()
 	if full {
 		W.TRKS.dump(W.TMAP.Map)
-	}
-}
-
-func (W *WOZFileFormat) DumpTrack(num byte) {
-	trkData := W.TRKS.Data[num].RawBytes()
-	for _, val := range trkData {
-		fmt.Printf("%08b", val)
 	}
 }

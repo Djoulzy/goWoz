@@ -4,8 +4,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"os"
-
-	"github.com/tunabay/go-bitarray"
 )
 
 ///////////////////////////////////////////
@@ -44,7 +42,6 @@ func (W *WOZTrackDesc) read(version int, f *os.File) {
 
 func (W *WOZTRKSChunk) read(MAP map[float32]byte, version int, f *os.File, header WOZChunkHeader) {
 	var dataStart uint32
-	var blockBuff []byte
 
 	W.Header = header
 	W.Version = version
@@ -55,31 +52,16 @@ func (W *WOZTRKSChunk) read(MAP map[float32]byte, version int, f *os.File, heade
 			W.Tracks[t].read(version, f)
 		}
 		// Read tracks data
-		// for _, track := range MAP {
-		// 	if track == 0xFF {
-		// 		continue
-		// 	} else {
-		// 		dataStart = uint32(W.Tracks[track].StartBlock) << 9
-		// 		f.Seek(int64(dataStart), 0)
-		// 		blockBuff = make([]byte, W.Tracks[track].BlockCount<<9)
-		// 		f.Read(blockBuff)
-
-		// 		W.Data[track] = bitarray.NewBufferFromByteSlice(blockBuff)
-		// 	}
-		// }
-
-		for t := 0; t < 160; t++ {
-			if W.Tracks[t].BlockCount == 0 {
+		for _, track := range MAP {
+			if track == 0xFF {
 				continue
+			} else {
+				dataStart = uint32(W.Tracks[track].StartBlock) << 9
+				f.Seek(int64(dataStart), 0)
+				W.Data[track] = make([]byte, int(W.Tracks[track].BitCount>>3)+1)
+				f.Read(W.Data[track])
 			}
-			dataStart = uint32(W.Tracks[t].StartBlock) << 9
-			f.Seek(int64(dataStart), 0)
-			blockBuff = make([]byte, W.Tracks[t].BlockCount<<9)
-			f.Read(blockBuff)
-
-			W.Data[t] = bitarray.NewBufferFromByteSlice(blockBuff)
 		}
-
 	} else {
 		// Read tracks data
 		for _, track := range MAP {
@@ -88,10 +70,9 @@ func (W *WOZTRKSChunk) read(MAP map[float32]byte, version int, f *os.File, heade
 			} else {
 				dataStart = 256 + (uint32(track) * 6656)
 				f.Seek(int64(dataStart), 0)
-				blockBuff = make([]byte, 6646)
-				f.Read(blockBuff)
+				W.Data[track] = make([]byte, 6646)
+				f.Read(W.Data[track])
 
-				W.Data[track] = bitarray.NewBufferFromByteSlice(blockBuff)
 				W.Tracks[track].read(version, f)
 			}
 		}
@@ -111,9 +92,9 @@ func (W *WOZTRKSChunk) dump(MAP map[float32]byte) {
 				continue
 			}
 			if W.Version >= 2 {
-				fmt.Printf("Physical Track %0.2f = Track %02d : %d blocks (%d bits / %d bytes) starts at block %d (byte %d) - len: %d\n", cpt, val, W.Tracks[val].BlockCount, W.Tracks[val].BitCount, W.Tracks[val].BitCount/8, W.Tracks[val].StartBlock, uint32(W.Tracks[val].StartBlock)<<9, W.Data[val].Len())
+				fmt.Printf("Physical Track %0.2f = Track %02d : %d blocks (%d bits / %d bytes) starts at block %d (byte %d) - len: %d\n", cpt, val, W.Tracks[val].BlockCount, W.Tracks[val].BitCount, W.Tracks[val].BitCount/8, W.Tracks[val].StartBlock, uint32(W.Tracks[val].StartBlock)<<9, len(W.Data[val]))
 			} else {
-				fmt.Printf("Physical Track %0.2f = Track %02d : %d bits / %d bytes (used: %d) - len: %d\n", cpt, val, W.Tracks[val].BitCount, W.Tracks[val].BitCount/8, W.Tracks[val].BytesUsed, W.Data[val].Len())
+				fmt.Printf("Physical Track %0.2f = Track %02d : %d bits / %d bytes (used: %d) - len: %d\n", cpt, val, W.Tracks[val].BitCount, W.Tracks[val].BitCount/8, W.Tracks[val].BytesUsed, len(W.Data[val]))
 			}
 		}
 	}
