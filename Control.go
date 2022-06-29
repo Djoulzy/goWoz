@@ -9,6 +9,14 @@ var count int = 0
 var wheel []byte = []byte{'-', '\\', '|', '/'}
 var pickbit = []byte{128, 64, 32, 16, 8, 4, 2, 1}
 
+func (W *WOZFileFormat) IsWriteProtected() bool {
+	return W.INFO.WriteProtected == 1
+}
+
+func (W *WOZFileFormat) GetMeta() map[string]string {
+	return W.META.Metadata
+}
+
 func (W *WOZFileFormat) getNextBit() byte {
 	// Lecture d'un track vide
 	// fmt.Printf("DataTrack: %v\n", W.dataTrack)

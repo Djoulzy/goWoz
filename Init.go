@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func InitWozFile(fileName string) (*WOZFileFormat, error) {
+func InitContainer(fileName string) (*WOZFileFormat, error) {
 	file, err := os.Open(fileName)
 	defer file.Close()
 
