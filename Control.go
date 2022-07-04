@@ -108,7 +108,7 @@ func (W *WOZFileFormat) DumpTrack(track float32) {
 
 	W.GoToTrack(track)
 	W.bitStreamPos = 0
-	for i := 1; i <= int(W.TRKS.Tracks[W.dataTrack].BlockCount<<9); i++ {
+	for i := 1; i <= int(W.TRKS.Tracks[W.dataTrack].BlockCount); i++ {
 		val = W.GetNextByte()
 		fmt.Printf("%02X ", val)
 		if i%32 == 0 {
@@ -122,7 +122,7 @@ func (W *WOZFileFormat) DumpTrackRaw(track float32) {
 
 	W.GoToTrack(track)
 	W.bitStreamPos = 0
-	for i := 1; i <= int(W.TRKS.Tracks[W.dataTrack].BlockCount<<9); i++ {
+	for i := 1; i <= int(W.TRKS.Tracks[W.dataTrack].BitCount); i++ {
 		val = W.getNextBit()
 		fmt.Printf("%1b", val)
 		if i%160 == 0 {
