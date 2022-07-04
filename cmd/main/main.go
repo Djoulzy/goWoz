@@ -10,7 +10,7 @@ func main() {
 		panic(err)
 	}
 	disk.Dump(true)
-	disk.ReadTrack(0, 6675)
+	disk.DumpTrack(0)
 	// disk.ReadTrackRaw(0, 53404)
 	// disk.DumpTrack(2)
 

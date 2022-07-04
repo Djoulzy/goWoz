@@ -55,11 +55,11 @@ func (W *WOZFileFormat) GetNextByte() byte {
 		result |= W.getNextBit() << i
 	}
 
-	fmt.Printf("-- [%c] T:%02.02f (%d) Pos:%d    \r", wheel[count], W.physicalTrack, W.dataTrack, W.bitStreamPos)
-	count++
-	if count >= len(wheel) {
-		count = 0
-	}
+	// fmt.Printf("-- [%c] T:%02.02f (%d) Pos:%d    \r", wheel[count], W.physicalTrack, W.dataTrack, W.bitStreamPos)
+	// count++
+	// if count >= len(wheel) {
+	// 	count = 0
+	// }
 	return result
 }
 
@@ -103,12 +103,12 @@ func (W *WOZFileFormat) Seek(offset float32) {
 	W.GoToTrack(destTrack)
 }
 
-func (W *WOZFileFormat) ReadTrack(track float32, nbBytes int) {
+func (W *WOZFileFormat) DumpTrack(track float32) {
 	var val byte
 
 	W.GoToTrack(track)
 	W.bitStreamPos = 0
-	for i := 1; i <= nbBytes; i++ {
+	for i := 1; i <= int(W.TRKS.Tracks[W.dataTrack].BlockCount<<9); i++ {
 		val = W.GetNextByte()
 		fmt.Printf("%02X ", val)
 		if i%32 == 0 {
@@ -117,12 +117,12 @@ func (W *WOZFileFormat) ReadTrack(track float32, nbBytes int) {
 	}
 }
 
-func (W *WOZFileFormat) ReadTrackRaw(track float32, nbBits int) {
+func (W *WOZFileFormat) DumpTrackRaw(track float32) {
 	var val byte
 
 	W.GoToTrack(track)
 	W.bitStreamPos = 0
-	for i := 1; i <= nbBits; i++ {
+	for i := 1; i <= int(W.TRKS.Tracks[W.dataTrack].BlockCount<<9); i++ {
 		val = W.getNextBit()
 		fmt.Printf("%1b", val)
 		if i%160 == 0 {
