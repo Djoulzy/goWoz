@@ -54,7 +54,9 @@ func (W *WOZFileFormat) GetNextByte() byte {
 		result |= W.getNextBit() << i
 	}
 
-	fmt.Printf("-- [%c] T:%02.02f (%d) Rev: %02d Pos:%d    \r", wheel[count], W.physicalTrack, W.dataTrack, W.revolution, W.bitStreamPos)
+	if debug {
+		fmt.Printf("-- [%c] T:%02.02f (%d) Rev: %02d Pos:%d    \r", wheel[count], W.physicalTrack, W.dataTrack, W.revolution, W.bitStreamPos)
+	}
 	count++
 	if count >= len(wheel) {
 		count = 0

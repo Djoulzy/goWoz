@@ -5,7 +5,9 @@ import (
 	"os"
 )
 
-func InitContainer(fileName string) (*WOZFileFormat, error) {
+var debug bool
+
+func InitContainer(fileName string, debugMode bool) (*WOZFileFormat, error) {
 	file, err := os.Open(fileName)
 	defer file.Close()
 
@@ -13,6 +15,7 @@ func InitContainer(fileName string) (*WOZFileFormat, error) {
 		return nil, err
 	}
 
+	debug = debugMode
 	tmp := WOZFileFormat{}
 	tmp.init(file)
 
