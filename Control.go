@@ -55,7 +55,7 @@ func (W *WOZFileFormat) GetNextByte() byte {
 	}
 
 	if debug {
-		fmt.Printf("-- [%c] T:%02.02f (%d) Rev: %02d Pos:%d    \r", wheel[count], W.physicalTrack, W.dataTrack, W.revolution, W.bitStreamPos)
+		W.output = fmt.Sprintf("[%c]  %05.02f     %02d    %02d %5d", wheel[count], W.physicalTrack, W.dataTrack, W.revolution, W.bitStreamPos)
 	}
 	count++
 	if count >= len(wheel) {
@@ -130,4 +130,8 @@ func (W *WOZFileFormat) DumpTrackRaw(track float32) {
 			fmt.Printf("\n")
 		}
 	}
+}
+
+func (W *WOZFileFormat) GetStatus() string {
+	return W.output
 }
