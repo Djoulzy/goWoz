@@ -130,7 +130,7 @@ func (W *WOZFileFormat) DumpTrackRaw(track float32) {
 	// }
 	for index, i := range W.TRKS.Data[W.dataTrack] {
 		fmt.Printf("%02X ", i)
-		if index%32 == 0 {
+		if (index+1)%32 == 0 {
 			fmt.Printf("\n")
 		}
 	}
