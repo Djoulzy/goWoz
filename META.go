@@ -19,7 +19,7 @@ func (W *WOZChunkMeta) read(f *os.File, header WOZChunkHeader) {
 
 	tmp = make([]byte, header.Size)
 	f.Read(tmp)
-	buff := fmt.Sprintf("%s", tmp)
+	buff := (string)(tmp)
 
 	if len(buff) > 0 {
 		W.Metadata = make(map[string]string)

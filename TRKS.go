@@ -84,6 +84,8 @@ func (W *WOZTRKSChunk) dump(MAP map[float32]byte) {
 	var cpt float32
 
 	fmt.Printf("== TRKS\n")
+	fmt.Printf(" Ph.Trk | Dat.Trk | Blks |  Bits | Start |  Len \n")
+	fmt.Printf("--------+---------+------+-------+-------+------\n")
 	for cpt = 0; cpt <= 40; cpt += 0.25 {
 		val, ok := MAP[cpt]
 		if ok {
@@ -92,7 +94,7 @@ func (W *WOZTRKSChunk) dump(MAP map[float32]byte) {
 				continue
 			}
 			if W.Version >= 2 {
-				fmt.Printf("Physical Track %0.2f = Track %02d : %d blocks (%d bits / %d bytes) starts at block %d (byte %d) - len: %d\n", cpt, val, W.Tracks[val].BlockCount, W.Tracks[val].BitCount, W.Tracks[val].BitCount/8, W.Tracks[val].StartBlock, uint32(W.Tracks[val].StartBlock)<<9, len(W.Data[val]))
+				fmt.Printf("  %05.02f |    %02d   |  %02d  | %05d |  %03d  | %04d\n", cpt, val, W.Tracks[val].BlockCount, W.Tracks[val].BitCount, W.Tracks[val].StartBlock, len(W.Data[val]))
 			} else {
 				fmt.Printf("Physical Track %0.2f = Track %02d : %d bits / %d bytes (used: %d) - len: %d\n", cpt, val, W.Tracks[val].BitCount, W.Tracks[val].BitCount/8, W.Tracks[val].BytesUsed, len(W.Data[val]))
 			}

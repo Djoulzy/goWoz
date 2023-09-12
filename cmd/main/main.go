@@ -5,13 +5,14 @@ import (
 )
 
 func main() {
-	disk, err := gowoz.InitContainer("Conan_A.woz", true)
+	disk, err := gowoz.InitContainer("Intrigue_A.woz", true)
 	if err != nil {
 		panic(err)
 	}
 	disk.Dump(true)
 	disk.DumpTrack(0)
-	// disk.ReadTrackRaw(0, 53404)
+	// disk.DumpTrackRaw(0)
+	// disk.DumpTrackRaw(0)
 	// disk.DumpTrack(2)
 
 	// disk.GoToTrack(1)
