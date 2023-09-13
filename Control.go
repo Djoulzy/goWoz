@@ -17,17 +17,17 @@ func (W *WOZFileFormat) GetMeta() map[string]string {
 	return W.META.Metadata
 }
 
-func (W *WOZFileFormat) getNextBit() byte {
+func (W *WOZFileFormat) getNextWozBit() byte {
 	// Lecture d'un track vide
 	// fmt.Printf("DataTrack: %v\n", W.dataTrack)
 
-	if W.TMAP.Map[W.physicalTrack] == 0xFF {
-		W.bitStreamPos++
-		if W.bitStreamPos > 51200 {
-			W.bitStreamPos = 0
-		}
-		return byte(rand.Intn(2))
-	}
+	// if W.TMAP.Map[W.physicalTrack] == 0xFF {
+	// 	W.bitStreamPos++
+	// 	if W.bitStreamPos > 51200 {
+	// 		W.bitStreamPos = 0
+	// 	}
+	// 	return byte(rand.Intn(2))
+	// }
 
 	W.bitStreamPos = W.bitStreamPos % W.TRKS.Tracks[W.dataTrack].BitCount
 	targetByte := W.bitStreamPos >> 3
@@ -41,6 +41,16 @@ func (W *WOZFileFormat) getNextBit() byte {
 		W.revolution++
 	}
 	return res
+}
+
+func (W *WOZFileFormat) getNextBit() byte {
+	W.headWindow = W.headWindow << 1
+	W.headWindow |= W.getNextWozBit()
+	if (W.headWindow & 0x0f) != 0x00 {
+		return (W.headWindow & 0x02) >> 1
+	} else {
+		return byte(rand.Intn(2))
+	}
 }
 
 func (W *WOZFileFormat) GetNextByte() byte {
@@ -61,6 +71,7 @@ func (W *WOZFileFormat) GetNextByte() byte {
 	if count >= len(wheel) {
 		count = 0
 	}
+	// fmt.Printf("Trk: %05.02f = %02X\n", W.physicalTrack, result)
 	return result
 }
 
@@ -134,6 +145,10 @@ func (W *WOZFileFormat) DumpTrackRaw(track float32) {
 			fmt.Printf("\n")
 		}
 	}
+}
+
+func (W *WOZFileFormat) GetCurrentTrack() float32 {
+	return W.physicalTrack
 }
 
 func (W *WOZFileFormat) GetStatus() string {

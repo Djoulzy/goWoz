@@ -67,6 +67,7 @@ func (W *WOZFileFormat) init(f *os.File) {
 	W.dataTrack = 0
 	W.bitStreamPos = 0
 	W.revolution = 0
+	W.headWindow = 0
 }
 
 func (W *WOZFileFormat) Dump(full bool) {
