@@ -79,9 +79,6 @@ func (W *WOZFileFormat) GoToTrack(num float32) {
 
 	W.physicalTrack = num
 	W.dataTrack = newDataTrack
-	if W.bitStreamPos > 3 {
-		W.bitStreamPos -= 4
-	}
 	// fmt.Printf("Move to T:%02.02f (%d) at pos %d\n", W.physicalTrack, W.dataTrack, W.bitStreamPos)
 }
 
@@ -139,3 +136,14 @@ func (W *WOZFileFormat) DumpTrackRaw(track float32) {
 func (W *WOZFileFormat) GetStatus() string {
 	return W.output
 }
+
+// #define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
+// #define BYTE_TO_BINARY(byte)  \
+//   (byte & 0b10000000 ? '1' : '0'), \
+//   (byte & 0b01000000 ? '1' : '0'), \
+//   (byte & 0b00100000 ? '1' : '0'), \
+//   (byte & 0b00010000 ? '1' : '0'), \
+//   (byte & 0b00001000 ? '1' : '0'), \
+//   (byte & 0b00000100 ? '1' : '0'), \
+//   (byte & 0b00000010 ? '1' : '0'), \
+//   (byte & 0b00000001 ? '1' : '0')
