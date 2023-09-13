@@ -81,6 +81,7 @@ type WOZFileFormat struct {
 	physicalTrack float32
 	dataTrack     byte
 	bitStreamPos  uint32
+	headWindow    byte
 	revolution    int
 	output        string
 }
