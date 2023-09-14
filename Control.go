@@ -18,25 +18,24 @@ func (W *WOZFileFormat) GetMeta() map[string]string {
 }
 
 func (W *WOZFileFormat) getNextWozBit() byte {
-	// Lecture d'un track vide
-	// fmt.Printf("DataTrack: %v\n", W.dataTrack)
+	var currentLength uint32
+	var res byte
 
-	// if W.TMAP.Map[W.physicalTrack] == 0xFF {
-	// 	W.bitStreamPos++
-	// 	if W.bitStreamPos > 51200 {
-	// 		W.bitStreamPos = 0
-	// 	}
-	// 	return byte(rand.Intn(2))
-	// }
+	if W.dataTrack == 0xFF {
+		currentLength = 51200
+		res = byte(rand.Intn(2))
+	} else {
+		currentLength = W.TRKS.Tracks[W.dataTrack].BitCount
 
-	W.bitStreamPos = W.bitStreamPos % W.TRKS.Tracks[W.dataTrack].BitCount
-	targetByte := W.bitStreamPos >> 3
-	targetBit := W.bitStreamPos & 7
+		W.bitStreamPos = W.bitStreamPos % currentLength
+		targetByte := W.bitStreamPos >> 3
+		targetBit := W.bitStreamPos & 7
 
-	res := (W.TRKS.Data[W.dataTrack][targetByte] & pickbit[targetBit]) >> (7 - targetBit)
+		res = (W.TRKS.Data[W.dataTrack][targetByte] & pickbit[targetBit]) >> (7 - targetBit)
+	}
 
 	W.bitStreamPos++
-	if W.bitStreamPos > W.TRKS.Tracks[W.dataTrack].BitCount {
+	if W.bitStreamPos > currentLength {
 		W.bitStreamPos = 0
 		W.revolution++
 	}
@@ -76,9 +75,17 @@ func (W *WOZFileFormat) GetNextByte() byte {
 }
 
 func (W *WOZFileFormat) GoToTrack(num float32) {
+	var currentLength uint32
+
 	newDataTrack, ok := W.TMAP.Map[num]
 	if !ok {
 		panic("bad track")
+	}
+
+	if newDataTrack == 0xFF {
+		W.physicalTrack = num
+		W.dataTrack = newDataTrack
+		return
 	}
 
 	W.revolution = 0
@@ -88,6 +95,12 @@ func (W *WOZFileFormat) GoToTrack(num float32) {
 		return
 	}
 
+	if W.dataTrack == 0xFF {
+		currentLength = 51200
+	} else {
+		currentLength = W.TRKS.Tracks[W.dataTrack].BitCount
+	}
+	W.bitStreamPos = W.bitStreamPos * W.TRKS.Tracks[newDataTrack].BitCount / currentLength
 	W.physicalTrack = num
 	W.dataTrack = newDataTrack
 	// fmt.Printf("Move to T:%02.02f (%d) at pos %d\n", W.physicalTrack, W.dataTrack, W.bitStreamPos)
@@ -120,7 +133,7 @@ func (W *WOZFileFormat) DumpTrack(track float32) {
 	for i := 1; i <= int(W.TRKS.Tracks[W.dataTrack].BlockCount*512); i++ {
 		val = W.GetNextByte()
 		fmt.Printf("%02X ", val)
-		if i%32 == 0 {
+		if i%51 == 0 {
 			fmt.Printf("\n")
 		}
 	}

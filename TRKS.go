@@ -62,6 +62,9 @@ func (W *WOZTRKSChunk) read(MAP map[float32]byte, version int, f *os.File, heade
 				f.Read(W.Data[track])
 			}
 		}
+		for _, tmp := range W.Data[0] {
+			fmt.Printf("%02X ", tmp)
+		}
 	} else {
 		// Read tracks data
 		for _, track := range MAP {
