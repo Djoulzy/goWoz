@@ -133,27 +133,15 @@ func (W *WOZFileFormat) DumpTrack(track float32) {
 	for i := 1; i <= int(W.TRKS.Tracks[W.dataTrack].BlockCount*512); i++ {
 		val = W.GetNextByte()
 		fmt.Printf("%02X ", val)
-		if i%51 == 0 {
+		if i%52 == 0 {
 			fmt.Printf("\n")
 		}
 	}
 }
 
-func (W *WOZFileFormat) DumpTrackRaw(track float32) {
-	W.GoToTrack(track)
-	W.bitStreamPos = 0
-	// for i := 1; i <= int(W.TRKS.Tracks[W.dataTrack].BitCount); i++ {
-	// 	val = W.getNextBit()
-	// 	fmt.Printf("%1b", val)
-	// 	if i%160 == 0 {
-	// 		fmt.Printf("\n")
-	// 	}
-	// }
-	for index, i := range W.TRKS.Data[W.dataTrack] {
-		fmt.Printf("%02X ", i)
-		if (index+1)%32 == 0 {
-			fmt.Printf("\n")
-		}
+func (W *WOZFileFormat) DumpTracksRaw() {
+	for index, _ := range W.TRKS.Data {
+		fmt.Printf("TRK index %02X: %08x bytes; %08x bits\n", index, W.TRKS.Tracks[index].ByteCount, W.TRKS.Tracks[index].BitCount)
 	}
 }
 
@@ -164,14 +152,3 @@ func (W *WOZFileFormat) GetCurrentTrack() float32 {
 func (W *WOZFileFormat) GetStatus() string {
 	return W.output
 }
-
-// #define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
-// #define BYTE_TO_BINARY(byte)  \
-//   (byte & 0b10000000 ? '1' : '0'), \
-//   (byte & 0b01000000 ? '1' : '0'), \
-//   (byte & 0b00100000 ? '1' : '0'), \
-//   (byte & 0b00010000 ? '1' : '0'), \
-//   (byte & 0b00001000 ? '1' : '0'), \
-//   (byte & 0b00000100 ? '1' : '0'), \
-//   (byte & 0b00000010 ? '1' : '0'), \
-//   (byte & 0b00000001 ? '1' : '0')

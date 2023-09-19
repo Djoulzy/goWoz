@@ -46,7 +46,7 @@ func (W *WOZChunkHeader) read(f *os.File) (int, error) {
 	}
 	n, err = f.Read(tmp[:])
 	if n == 0 {
-		return -1, errors.New("Malformed file")
+		return -1, errors.New("malformed file")
 	}
 	if err != nil {
 		return n, err

@@ -47,6 +47,7 @@ type WOZInfoChunk struct {
 type WOZTMapChunk struct {
 	Header WOZChunkHeader
 	Map    map[float32]byte
+	Sorted []float64
 }
 
 type WOZTrackDesc struct {
@@ -54,6 +55,7 @@ type WOZTrackDesc struct {
 	StartBlock uint16
 	BlockCount uint16
 	BitCount   uint32
+	ByteCount  uint32
 
 	BytesUsed      uint16
 	SplicePoint    uint16

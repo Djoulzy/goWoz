@@ -74,6 +74,7 @@ func (W *WOZFileFormat) Dump(full bool) {
 	W.Header.dump()
 	W.INFO.dump()
 	W.META.dump()
+	W.TMAP.dump()
 	if full {
 		W.TRKS.dump(W.TMAP.Map)
 	}
