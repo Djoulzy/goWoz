@@ -27,10 +27,11 @@ func (W *WOZFileFormat) DumpTrack(track float32) {
 		fmt.Printf("%02X ", val)
 		count++
 		if count%51 == 0 {
-			fmt.Printf("\n")
+			fmt.Printf(" %d \n", W.GetStreamPos())
 			count = 0
 		}
 	}
+	
 }
 
 func (W *WOZFileFormat) DumpTracksRaw() {

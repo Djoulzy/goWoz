@@ -59,7 +59,7 @@ func (W *WOZTRKSChunk) read(MAP map[float32]byte, version int, f *os.File, heade
 			} else {
 				dataStart = uint32(W.Tracks[track].StartBlock) << 9
 				f.Seek(int64(dataStart), 0)
-				W.Data[track] = make([]byte, int((W.Tracks[track].BitCount)>>3))
+				W.Data[track] = make([]byte, int((W.Tracks[track].BitCount)>>3 + 1))
 				f.Read(W.Data[track])
 			}
 		}

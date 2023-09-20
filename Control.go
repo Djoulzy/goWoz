@@ -12,6 +12,8 @@ import (
 var count int = 0
 var wheel []byte = []byte{'-', '\\', '|', '/'}
 var pickbit = []byte{128, 64, 32, 16, 8, 4, 2, 1}
+var randomBits uint64 = 0b0100101001001001001001001001000101001010010010010010010010010001
+var randBitsPos uint64 = 0x01
 
 func (W *WOZFileFormat) makeDebug() {
 	W.output = fmt.Sprintf("[%c]  %05.02f     %02d    %02d %5d", wheel[count], W.physicalTrack, W.dataTrack, W.revolution, W.bitStreamPos)
@@ -31,6 +33,15 @@ func (W *WOZFileFormat) GetStreamPos() uint32 {
 
 func (W *WOZFileFormat) GetRevolutionNumber() int {
 	return W.revolution
+}
+
+func (W *WOZFileFormat) getNoise() byte {
+	res := randomBits & randBitsPos
+	randBitsPos <<= 1
+	if res > 0 {
+		return 1
+	}
+	return 0
 }
 
 func (W *WOZFileFormat) getNextWozBit() byte {
@@ -65,7 +76,7 @@ func (W *WOZFileFormat) getNextBit() byte {
 	if (W.headWindow & 0x0f) != 0x00 {
 		return (W.headWindow & 0x02) >> 1
 	} else {
-		return byte(rand.Intn(2))
+		return W.getNoise()
 	}
 }
 
@@ -76,7 +87,8 @@ func (W *WOZFileFormat) getNextBit() byte {
 // }
 
 func (W *WOZFileFormat) GetNextByte() byte {
-	var bit, result byte
+	var bit byte
+	var result byte
 
 	result = 0
 	for bit = 0; bit == 0; bit = W.getNextBit() {

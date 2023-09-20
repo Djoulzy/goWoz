@@ -5,7 +5,7 @@ import (
 )
 
 func main() {
-	disk, err := gowoz.InitContainer("DOS33.woz", true)
+	disk, err := gowoz.InitContainer("Intrigue_A.woz", true)
 	if err != nil {
 		panic(err)
 	}
