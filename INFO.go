@@ -67,7 +67,7 @@ func (W *WOZInfoChunk) dump() {
 		fmt.Printf("\tOptimalBitTiming: %d\n", W.OptimalBitTiming)
 		fmt.Printf("\tCompatibleHardware: %d\n", W.CompatibleHardware)
 		fmt.Printf("\tRequiredRAM: %dK\n", W.RequiredRAM)
-		fmt.Printf("\tLargestTrack: %d blocks (%d bytes)\n", W.LargestTrack, W.LargestTrack*512)
+		fmt.Printf("\tLargestTrack: %d blocks (%d bytes)\n", W.LargestTrack, W.LargestTrack<<9)
 	}
 	if W.Version >= 3 {
 		fmt.Printf("\tFLUXBlock: %d\n", W.FLUXBlock)

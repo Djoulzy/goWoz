@@ -1,8 +1,13 @@
 package gowoz
 
+// Blaock size: 512 Bytes ( bits << 9)
+// LSS:
+//
+
 import (
 	"fmt"
 	"math/rand"
+	"time"
 )
 
 var count int = 0
@@ -43,6 +48,7 @@ func (W *WOZFileFormat) getNextWozBit() byte {
 }
 
 func (W *WOZFileFormat) getNextBit() byte {
+	time.Sleep(4 * time.Microsecond)
 	W.headWindow = W.headWindow << 1
 	W.headWindow |= W.getNextWozBit()
 	if (W.headWindow & 0x0f) != 0x00 {
@@ -51,6 +57,12 @@ func (W *WOZFileFormat) getNextBit() byte {
 		return byte(rand.Intn(2))
 	}
 }
+
+// func (W *WOZFileFormat) LSSRead() byte {
+// 	// time.Sleep(4 * time.Microsecond)
+// 	W.getNextBit()
+// 	return W.getNextBit()
+// }
 
 func (W *WOZFileFormat) GetNextByte() byte {
 	var bit, result byte
