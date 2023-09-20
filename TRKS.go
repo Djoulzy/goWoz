@@ -59,7 +59,7 @@ func (W *WOZTRKSChunk) read(MAP map[float32]byte, version int, f *os.File, heade
 			} else {
 				dataStart = uint32(W.Tracks[track].StartBlock) << 9
 				f.Seek(int64(dataStart), 0)
-				W.Data[track] = make([]byte, int(W.Tracks[track].BlockCount<<9)+1)
+				W.Data[track] = make([]byte, int((W.Tracks[track].BitCount)>>3))
 				f.Read(W.Data[track])
 			}
 		}
@@ -123,7 +123,7 @@ func (W *WOZTRKSChunk) dump(MAP map[float32]byte) {
 	fmt.Printf("== TRKS\n")
 	for index, trk := range W.Tracks {
 		if trk.BlockCount > 0 {
-			fmt.Printf("TRK index %02X: start byte in BITS %08x; %08x bytes; %08x bits (", index, (trk.StartBlock-3)<<9, trk.BlockCount<<9, trk.BitCount)
+			fmt.Printf("TRK index %02X: start byte in BITS %08x; ends %08x; %08x bytes; %08x bits (", index, 1536+(trk.StartBlock)<<9, 1536+(trk.StartBlock)<<9+trk.BlockCount<<9, trk.BlockCount<<9, trk.BitCount)
 			for i := 0; i < 8; i++ {
 				fmt.Printf("%s", W.reverseByte(W.Data[index][i]))
 			}

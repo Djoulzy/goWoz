@@ -7,12 +7,15 @@ package gowoz
 import (
 	"fmt"
 	"math/rand"
-	"time"
 )
 
 var count int = 0
 var wheel []byte = []byte{'-', '\\', '|', '/'}
 var pickbit = []byte{128, 64, 32, 16, 8, 4, 2, 1}
+
+func (W *WOZFileFormat) makeDebug() {
+	W.output = fmt.Sprintf("[%c]  %05.02f     %02d    %02d %5d", wheel[count], W.physicalTrack, W.dataTrack, W.revolution, W.bitStreamPos)
+}
 
 func (W *WOZFileFormat) IsWriteProtected() bool {
 	return W.INFO.WriteProtected == 1
@@ -20,6 +23,14 @@ func (W *WOZFileFormat) IsWriteProtected() bool {
 
 func (W *WOZFileFormat) GetMeta() map[string]string {
 	return W.META.Metadata
+}
+
+func (W *WOZFileFormat) GetStreamPos() uint32 {
+	return W.bitStreamPos
+}
+
+func (W *WOZFileFormat) GetRevolutionNumber() int {
+	return W.revolution
 }
 
 func (W *WOZFileFormat) getNextWozBit() byte {
@@ -32,9 +43,9 @@ func (W *WOZFileFormat) getNextWozBit() byte {
 	} else {
 		currentLength = W.TRKS.Tracks[W.dataTrack].BitCount
 
-		W.bitStreamPos = W.bitStreamPos % currentLength
-		targetByte := W.bitStreamPos >> 3
-		targetBit := W.bitStreamPos & 7
+		newPos := W.bitStreamPos % currentLength
+		targetByte := newPos >> 3
+		targetBit := newPos & 7
 
 		res = (W.TRKS.Data[W.dataTrack][targetByte] & pickbit[targetBit]) >> (7 - targetBit)
 	}
@@ -48,7 +59,7 @@ func (W *WOZFileFormat) getNextWozBit() byte {
 }
 
 func (W *WOZFileFormat) getNextBit() byte {
-	time.Sleep(4 * time.Microsecond)
+	// time.Sleep(4 * time.Microsecond)
 	W.headWindow = W.headWindow << 1
 	W.headWindow |= W.getNextWozBit()
 	if (W.headWindow & 0x0f) != 0x00 {
@@ -76,7 +87,7 @@ func (W *WOZFileFormat) GetNextByte() byte {
 	}
 
 	if debug {
-		W.output = fmt.Sprintf("[%c]  %05.02f     %02d    %02d %5d", wheel[count], W.physicalTrack, W.dataTrack, W.revolution, W.bitStreamPos)
+		W.makeDebug()
 	}
 	count++
 	if count >= len(wheel) {
@@ -115,7 +126,6 @@ func (W *WOZFileFormat) GoToTrack(num float32) {
 	W.bitStreamPos = W.bitStreamPos * W.TRKS.Tracks[newDataTrack].BitCount / currentLength
 	W.physicalTrack = num
 	W.dataTrack = newDataTrack
-	// fmt.Printf("Move to T:%02.02f (%d) at pos %d\n", W.physicalTrack, W.dataTrack, W.bitStreamPos)
 }
 
 func (W *WOZFileFormat) Seek(offset float32) {
@@ -135,30 +145,17 @@ func (W *WOZFileFormat) Seek(offset float32) {
 		destTrack = maxTrack
 	}
 	W.GoToTrack(destTrack)
-}
-
-func (W *WOZFileFormat) DumpTrack(track float32) {
-	var val byte
-
-	W.GoToTrack(track)
-	W.bitStreamPos = 0
-	for i := 1; i <= int(W.TRKS.Tracks[W.dataTrack].BlockCount*512); i++ {
-		val = W.GetNextByte()
-		fmt.Printf("%02X ", val)
-		if i%52 == 0 {
-			fmt.Printf("\n")
-		}
-	}
-}
-
-func (W *WOZFileFormat) DumpTracksRaw() {
-	for index, _ := range W.TRKS.Data {
-		fmt.Printf("TRK index %02X: %08x bytes; %08x bits\n", index, W.TRKS.Tracks[index].ByteCount, W.TRKS.Tracks[index].BitCount)
+	if debug {
+		W.makeDebug()
 	}
 }
 
 func (W *WOZFileFormat) GetCurrentTrack() float32 {
 	return W.physicalTrack
+}
+
+func (W *WOZFileFormat) GetCurrentDataTrack() byte {
+	return W.dataTrack
 }
 
 func (W *WOZFileFormat) GetStatus() string {

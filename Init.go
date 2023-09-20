@@ -63,19 +63,9 @@ func (W *WOZFileFormat) init(f *os.File) {
 		}
 	}
 
-	W.physicalTrack = 0
-	W.dataTrack = 0
+	W.physicalTrack = 10
+	W.dataTrack = W.TMAP.Map[10]
 	W.bitStreamPos = 0
 	W.revolution = 0
 	W.headWindow = 0
-}
-
-func (W *WOZFileFormat) Dump(full bool) {
-	W.Header.dump()
-	W.INFO.dump()
-	W.META.dump()
-	W.TMAP.dump()
-	if full {
-		W.TRKS.dump(W.TMAP.Map)
-	}
 }
