@@ -2,10 +2,12 @@ package gowoz
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 )
 
 var debug bool
+var percentOfOne float64 = 30
 
 func InitContainer(fileName string, debugMode bool) (*WOZFileFormat, error) {
 	file, err := os.Open(fileName)
@@ -20,6 +22,45 @@ func InitContainer(fileName string, debugMode bool) (*WOZFileFormat, error) {
 	tmp.init(file)
 
 	return &tmp, err
+}
+
+func (W *WOZFileFormat) genRandomBits() {
+	var percent float64 = percentOfOne / 100
+	var nbOne int = int(percent*256) + 1
+	var i int = 0
+	var place int
+
+	fmt.Printf("%d\n", nbOne)
+	for i < nbOne {
+		place = rand.Intn(256)
+		if W.randomBits[place] == 1 {
+			continue
+		} else {
+			W.randomBits[place] = 1
+			i++
+		}
+	}
+
+	W.randomBits = [256]byte{
+		1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0,
+		1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1,
+		0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0,
+		0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0,
+		0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+		1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0,
+	}
+}
+
+func (W *WOZFileFormat) diplayRandomBits() {
+	for index, b := range W.randomBits {
+		fmt.Printf("%b,", b)
+		if (index+1)%32 == 0 {
+			fmt.Printf("\n")
+		}
+	}
+	fmt.Printf("\n")
 }
 
 func (W *WOZFileFormat) init(f *os.File) {
@@ -68,4 +109,8 @@ func (W *WOZFileFormat) init(f *os.File) {
 	W.bitStreamPos = 0
 	W.revolution = 0
 	W.headWindow = 0
+	W.randBitsPos = 0
+
+	W.genRandomBits()
+	W.diplayRandomBits()
 }

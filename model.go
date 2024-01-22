@@ -86,4 +86,6 @@ type WOZFileFormat struct {
 	headWindow    byte
 	revolution    int
 	output        string
+	randomBits    [256]byte
+	randBitsPos   byte
 }

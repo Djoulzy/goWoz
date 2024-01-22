@@ -1,15 +1,13 @@
 package main
 
-import (
-	"github.com/Djoulzy/gowoz"
-)
+import "github.com/Djoulzy/gowoz"
 
 func main() {
-	disk, err := gowoz.InitContainer("Intrigue_A.woz", true)
+	disk, err := gowoz.InitContainer("/Users/jules/go/src/newApple/imgTest/DOS33.woz", true)
 	if err != nil {
 		panic(err)
 	}
-	disk.Dump(true)
+	// disk.Dump(true)
 	disk.DumpTrack(0)
 
 	// disk.DumpTracksRaw()

@@ -31,11 +31,11 @@ func (W *WOZFileFormat) DumpTrack(track float32) {
 			count = 0
 		}
 	}
-	
+
 }
 
 func (W *WOZFileFormat) DumpTracksRaw() {
-	for index, _ := range W.TRKS.Data {
+	for index := range W.TRKS.Data {
 		fmt.Printf("TRK index %02X: %08x bytes; %08x bits\n", index, W.TRKS.Tracks[index].ByteCount, W.TRKS.Tracks[index].BitCount)
 	}
 }
