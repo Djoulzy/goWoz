@@ -1,3 +1,3 @@
 module github.com/Djoulzy/gowoz
 
-go 1.18
+go 1.21
