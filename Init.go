@@ -11,11 +11,10 @@ var percentOfOne float64 = 30
 
 func InitContainer(fileName string, debugMode bool) (*WOZFileFormat, error) {
 	file, err := os.Open(fileName)
-	defer file.Close()
-
 	if err != nil {
 		return nil, err
 	}
+	defer file.Close()
 
 	debug = debugMode
 	tmp := WOZFileFormat{}
