@@ -40,38 +40,23 @@ func (W *WOZFileFormat) getNoise() byte {
 }
 
 func (W *WOZFileFormat) getNextWozBit() byte {
-	// var currentLength uint32
-	// var res byte
+	var currentLength uint32
+	var res byte
 
-	// if W.dataTrack == 0xFF {
-	// 	currentLength = 51200
-	// 	res = W.getNoise()
-	// 	// res = byte(rand.Intn(2))
-	// } else {
-	// 	currentLength = W.TRKS.Tracks[W.dataTrack].BitCount
-
-	// 	newPos := W.bitStreamPos % currentLength
-	// 	targetByte := newPos >> 3
-	// 	targetBit := newPos & 7
-
-	// 	res = (W.TRKS.Data[W.dataTrack][targetByte] & pickbit[targetBit]) >> (7 - targetBit)
-	// }
-
-	// W.bitStreamPos++
-	// if W.bitStreamPos > currentLength {
-	// 	W.bitStreamPos = 0
-	// 	W.revolution++
-	// }
-	// return res
-
-	W.bitStreamPos = W.bitStreamPos % W.TRKS.Tracks[W.dataTrack].BitCount
-	targetByte := W.bitStreamPos >> 3
-	targetBit := W.bitStreamPos & 7
-
-	res := (W.TRKS.Data[W.dataTrack][targetByte] & pickbit[targetBit]) >> (7 - targetBit)
+	if W.dataTrack == 0xFF {
+		currentLength = 51200
+		W.bitStreamPos = W.bitStreamPos % currentLength
+		res = W.getNoise()
+	} else {
+		currentLength = W.TRKS.Tracks[W.dataTrack].BitCount
+		W.bitStreamPos = W.bitStreamPos % currentLength
+		targetByte := W.bitStreamPos >> 3
+		targetBit := W.bitStreamPos & 7
+		res = (W.TRKS.Data[W.dataTrack][targetByte] & pickbit[targetBit]) >> (7 - targetBit)
+	}
 
 	W.bitStreamPos++
-	if W.bitStreamPos > W.TRKS.Tracks[W.dataTrack].BitCount {
+	if W.bitStreamPos > currentLength {
 		W.bitStreamPos = 0
 		W.revolution++
 	}
